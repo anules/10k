@@ -1,8 +1,11 @@
 #!/usr/bin/env node
 
+
 var TenThousand = function(playerCount) {
+  var lodash = require('lodash')
   var readlineSync = require('readline-sync');
-  var currentPlayer, currentTurn
+  // var currentPlayer
+  var currentTurn
 
   var init = function(playerCount) {
     this.players = [];
@@ -30,15 +33,39 @@ var TenThousand = function(playerCount) {
     this.score = 0;
     this.player = player;
 
-    var cachedCombos = []
     var availableDice = []
-    var selectedDice = []
-    for (i=0; i<6; i++) {
-      availableDice.push(new Die(6))
+    var currentRollScore = null
+    this.refill = function() {
+      for (i=0; i<6; i++) {
+        availableDice.push(new Die(6))
+      }
+    }
+
+    this.roll = function() {
+      currentRollScore = null
+      if(availableDice.length == 0) { this.refill() }
+      lodash.forEach(availableDice, function(die) { die.roll() })
+
+      currentRollScore = new Score(availableDice.map(function(die) { return die.value }))
+      currentRollScore.calculate()
+    }
+
+    this.show = function() {
+      lodash.forEach(availableDice, function(die) {
+        console.log(die)
+        process.stdout.write(die.value.toString())
+      })
     }
 
     this.isBust = function() {
-
+      if(currentRollScore == null) {
+        // wtf, man
+        throw('WTF')
+      } else if(currentRollScore.possibilities.length == 1) {
+        return true
+      } else {
+        return false
+      }
     }
 
     this.remainingDice = function() {
@@ -50,73 +77,86 @@ var TenThousand = function(playerCount) {
       // set aside the selected dice
       // add their point value to the total
     }
+  }
 
-    // returns an array of possible scoring combinations and dice
-    // to be kept, e.g., when [1,3,4,3,3,1] is passed in:
-    // [
-    //   {score: 500, dice: [1,1,3,3,3]},
-    //   {score: 200, dice: [1,1]},
-    //   {score: 300, dice: [3,3,3]},
-    //   {score: 100, dice: [1]}
-    // ]
-    this.calculateCombos = function(diceValues, score) {
-      return [] if dice.length == 0
+  // @param dice [Array<Integer>]
+  var Score = function(dice) {
 
-      score = score || 0
-      dice.sort(function(a,b){ a - b })
+    // [{score: 0, remains: '123456'}]
+    this.possibilities = [{score: 0, remains: lodash.sortBy(dice).join('')}]
 
-      if(dice==[1,2,3,4,5,6]) {
-        return [{score: 1500, dice: dice}]
-      } else {
-        counts = {}
-        dice.map(function(x) {counts[x] = (counts[x] || 0) + 1})
+    this.attempt = function(dieset, score) { // e.g., attempt('111', 1000)
+      // we will split the possibilities if we find a match.
+      lodash.forEach(this.possibilities, function(possibility) {
 
-        if(Object.keys(counts).length == 3 && Object.keys(counts).map(function(k){counts[k]} == [2,2,2]) {
-          return [{score: 1500, dice: dice}]
-        } else {
+        while(lodash.contains(possibility.remains, dieset)) {
+          console.log('ok, we have something')
+          console.log(dieset)
+          console.log(possibility)
 
-          value = []
-          if
-          // if any number has more than 3 of a kind, keep or don't.
-          // what is the value from keeping it? what dice remain, and what could they do?
+          // SWEET, it's a scoring combination!
+          var newPossibility = {score: possibility.score + score, remains: possibility.remains.replace(dieset,'')}
 
-          // what is the value from not keeping it? what dice remain?
-
+          console.log('newPossibility')
+          console.log(newPossibility)
+          // push that sucker on for nex time,
+          // and then try again with it (see if this rule matches again)
+          this.possibilities.push(newPossibility)
+          possibility = newPossibility
         }
-      }
-      // 1,2,3,4,5,6 => 1500
-      // 3 distinct pairs => 750
-      // 3 * 1 => 1000
-      // 3 * n => n * 100
-      // 4 * n => (2 * n * 100)
-      // x * n => ([3-x] * n * 100)
-      // 1 => 100
-      // 5 => 50
+      }, this)
     }
 
-    this.calc = function(diceValues) {
-      diceValues.sort(function(a,b){ a - b })
-      if(diceValues == [1,2,3,4,5,6]) {
+    this.calculate = function() {
+      this.attempt('123456', 1500)
 
-      }
-    }
+      this.attempt('112233', 750)
+      this.attempt('112244', 750)
+      this.attempt('112255', 750)
+      this.attempt('112266', 750)
+      this.attempt('113344', 750)
+      this.attempt('113355', 750)
+      this.attempt('113366', 750)
+      this.attempt('114455', 750)
+      this.attempt('114466', 750)
+      this.attempt('224466', 750)
+      this.attempt('334466', 750)
 
+      this.attempt('111',   1000)
+      this.attempt('1111',  2000)
+      this.attempt('11111', 4000)
+      this.attempt('111111',8000)
+      this.attempt('222',    200)
+      this.attempt('2222',   400)
+      this.attempt('22222',  800)
+      this.attempt('222222',1600)
+      this.attempt('333',    300)
+      this.attempt('3333',   600)
+      this.attempt('33333', 1200)
+      this.attempt('333333',2400)
+      this.attempt('444',    400)
+      this.attempt('4444',   800)
+      this.attempt('44444', 1600)
+      this.attempt('444444',3200)
+      this.attempt('555',    500)
+      this.attempt('5555',  1000)
+      this.attempt('55555', 2000)
+      this.attempt('555555',4000)
+      this.attempt('666',    600)
+      this.attempt('6666',  1200)
+      this.attempt('66666', 2400)
+      this.attempt('666666',4800)
 
+      this.attempt('1',      100)
+      this.attempt('11',     200)
 
-
-
-    this.roll = function() {
-      cachedCombos = []
-      console.log(availableDice)
-      for(i=0;i<availableDice.length; i++) {
-        availableDice[i].roll();
-      }
+      this.attempt('5',       50)
+      this.attempt('55',     100)
     }
   }
 
   var Roll = function(dice) {
-    values = []
-    for(i=0;i<dice.length;i++) {
+    function attempt(combo) {
 
     }
   }
@@ -133,48 +173,35 @@ var TenThousand = function(playerCount) {
   // private:
   // passes play to next player
   // called by `bank` and in `roll` upon a bust
-  this.pass = function() {
+  var pass = function() {
     this.players.push(this.players.shift());
-    currentPlayer = this.players[0]
   }
 
-  // BANK:
-  // add the score and pass
-  this.bank = function() {
+  var currentPlayer = function() {
+    return this.players[0]
   }
 
-  this.roll = function() {
-    if(currentTurn == null || currentTurn.player != currentPlayer){
-      currentTurn = new Turn(currentPlayer)
-    }
-    currentTurn.roll();
-
-    if(currentTurn.isBust()) {
-      process.stdout.write("OH NOES. YOU BUSTED.\n")
-      this.pass();
-    } else {
-      // prompt for keeping, show combos in select box
-    }
-  }
-
-  this.take = function() {
-  }
 
   this.step = function() {
-    options = {
+    console.log('starting step')
+    console.log(this)
+    var options = {
       quit: function(){ return process.exit(); },
       roll: function(){
-        if(currentTurn == null || currentTurn.player != currentPlayer){
-          currentTurn = new Turn(currentPlayer)
+        if(currentTurn == null || currentTurn.player != currentPlayer()){
+          currentTurn = new Turn(currentPlayer())
         }
-        currentTurn.roll();
+        currentTurn.roll();  // TODO
         // OUTPUT SCORE
 
 
         if(currentTurn.isBust()) {
           process.stdout.write("OH NOES. YOU BUSTED.\n")
-          this.pass();
+          console.log(this)
+          pass();
         } else {
+          process.stdout.write("SWEET, the possibilities are:")
+          currentTurn.show();
           // prompt for keeping, show combos in select box
         }
       }
@@ -183,27 +210,33 @@ var TenThousand = function(playerCount) {
     // players who are "on the board" can carry forward the
     // score of the previous player's turn by rolling the
     // remaining dice
-    if(!currentTurn.isBust() && currentPlayer.score() > 0 && currentTurn.remainingDice > 0){
+    if(currentTurn && !currentTurn.isBust() && currentPlayer().score() > 0 && currentTurn.remainingDice > 0){
       options['take'] = function(){
-        currentTurn.player = currentPlayer
+        currentTurn.player = currentPlayer()
         return this.roll();
       }
     }
 
     // once a turn reaches the player's minimum score, the
     // player can choose to end her turn by banking the score
-    if(currentTurn.score >= currentPlayer.minimumScore) {
+    if(currentTurn && currentTurn.score >= currentPlayer().minimumScore) {
       options['bank'] = function(){
-        currentPlayer.bankScore(currentTurn.score)
-        this.pass();
+        currentPlayer().bankScore(currentTurn.score)
+        pass();
       }
+    }
+
+    options['help'] = function() {
+      process.stdout.write("AVAILABLE COMMANDS: " + lodash.keys(options).join() + '\n')
     }
 
     readlineSync.promptCL(options)
   }
 
   this.play = function() {
-    while(this.isPlayable()) { this.step }
+    console.log('starting play')
+    while(this.isPlayable()) { this.step() }
+    this.showScore()
   }
 
   this.showScore = function(out) {
@@ -226,7 +259,7 @@ var TenThousand = function(playerCount) {
   }
 
   this.isPlayable = function() {
-    return false
+    return true
     // if any player has exactly 10k, end now
     // else if endgame is in effect, and all players have played, end now
     // else if any player has greater than 10k, start endgame
