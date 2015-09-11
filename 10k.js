@@ -6,16 +6,35 @@ var TenThousand = function(playerCount) {
   var readlineSync = require('readline-sync');
   // var currentPlayer
   var currentTurn
+  var input = ['roll', 'bank', 'keep[x]', 'quit']
 
   var init = function(playerCount) {
+    console.log('Starting init')
     this.players = [];
     for(i=0;i<playerCount;i++) {
-      var playerName = readlineSync.question('PLAYER ' + (i+1) +':')
+      playerName = readlineSync.question('PLAYER ' + (i+1) +':')
       player = new Player(playerName)
       this.players[i] = player
     }
+    nameComparison = lodash.pluck(lodash.sortBy(this.players, 'name'), 'name');
+    function hasDuplicates(array) {
+      var valuesSoFar = Object.create(null);
+      for (var i = 0; i < array.length; ++i) {
+        var value = array[i];
+        if (value in valuesSoFar) {
+           return true;
+        }
+        valuesSoFar[value] = true;
+      }
+      return false;
+    }
 
-  }
+    if (hasDuplicates(nameComparison) === true){
+      process.stdout.write("You must have unique names. \n");
+      init(playerCount);
+    };
+
+  };
 
   var Die = function(requested_sides) {
     this.sides = requested_sides || 6
@@ -76,6 +95,7 @@ var TenThousand = function(playerCount) {
     this.keep = function(values) {
       // set aside the selected dice
       // add their point value to the total
+      console.log('you kept these dice!');
     }
   }
 
@@ -90,6 +110,7 @@ var TenThousand = function(playerCount) {
       lodash.forEach(this.possibilities, function(possibility) {
 
         while(lodash.contains(possibility.remains, dieset)) {
+
           console.log('ok, we have something')
           console.log(dieset)
           console.log(possibility)
@@ -184,7 +205,8 @@ var TenThousand = function(playerCount) {
 
   this.step = function() {
     console.log('starting step')
-    console.log(this)
+    process.stdout.write('What would you like to do?\n' + input + '\n');
+
     var options = {
       quit: function(){ return process.exit(); },
       roll: function(){
@@ -204,6 +226,9 @@ var TenThousand = function(playerCount) {
           currentTurn.show();
           // prompt for keeping, show combos in select box
         }
+      // keep: function() {
+      //   if()
+      //   }
       }
     }
 
@@ -254,7 +279,7 @@ var TenThousand = function(playerCount) {
     for(i=0;i<players.length; i++) {
       player = players[i]
 
-      out.write('SCORE: ' +player.score() + '\t' + 'PLAYER: ' +player.name +'\n')
+      out.write('SCORE: ' +player.score() + '\t' + 'PLAYER: ' + player.name +'\n')
     }
   }
 
