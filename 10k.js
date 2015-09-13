@@ -2,19 +2,18 @@
 
 
 var TenThousand = function(playerCount) {
-  var lodash = require('lodash')
+  var lodash = require('lodash');
   var readlineSync = require('readline-sync');
   // var currentPlayer
-  var currentTurn
-  var input = ['roll', 'bank', 'keep[x]', 'quit']
+  var currentTurn;
+  var input = ['roll', 'bank', 'keep[x]', 'quit'];
 
   var init = function(playerCount) {
-    console.log('Starting init')
     this.players = [];
     for(i=0;i<playerCount;i++) {
-      playerName = readlineSync.question('PLAYER ' + (i+1) +':')
-      player = new Player(playerName)
-      this.players[i] = player
+      playerName = readlineSync.question('PLAYER ' + (i+1) +':');
+      player = new Player(playerName);
+      this.players[i] = player;
     }
     nameComparison = lodash.pluck(lodash.sortBy(this.players, 'name'), 'name');
     function hasDuplicates(array) {
@@ -32,9 +31,10 @@ var TenThousand = function(playerCount) {
     if (hasDuplicates(nameComparison) === true){
       process.stdout.write("You must have unique names. \n");
       init(playerCount);
-    };
+    }
 
   };
+
 
   var Die = function(requested_sides) {
     this.sides = requested_sides || 6
@@ -183,6 +183,7 @@ var TenThousand = function(playerCount) {
   }
 
   var Player = function(name) {
+
     this.name = name;
 
     var score = 0;
@@ -265,11 +266,12 @@ var TenThousand = function(playerCount) {
   }
 
   this.showScore = function(out) {
+
     out = out || process.stdout
 
     // operate on a copy of this.players, since Array.prototype.sort()
     // sorts the array in place, and we don't want to mess up turn order.
-    players = this.players.slice(0)
+    players = players.slice(0)
     players.sort(function(a,b){
       return b.score() - a.score()
     })
@@ -277,9 +279,9 @@ var TenThousand = function(playerCount) {
     out.write('=== SCOREBOARD ===\n')
     // output one per line
     for(i=0;i<players.length; i++) {
-      player = players[i]
+      // player = players[i]
 
-      out.write('SCORE: ' +player.score() + '\t' + 'PLAYER: ' + player.name +'\n')
+      out.write('SCORE: ' +player.score() + '\t' + 'PLAYER: ' + players[i].name +'\n')
     }
   }
 
